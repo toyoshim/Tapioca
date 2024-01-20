@@ -1,3 +1,6 @@
 [submodule "Middlewares/Third_Party/lui"]
 	path = Middlewares/Third_Party/lui
 	url = git@github.com:toyoshim/lui.git
+[submodule "Middlewares/Third_Party/stm32-sdcard"]
+	path = Middlewares/Third_Party/stm32-sdcard
+	url = git@github.com:afiskon/stm32-sdcard.git
