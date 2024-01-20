@@ -1,0 +1,3 @@
+[submodule "Middlewares/Third_Party/lui"]
+	path = Middlewares/Third_Party/lui
+	url = git@github.com:toyoshim/lui.git
