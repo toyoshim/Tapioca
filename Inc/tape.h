@@ -29,5 +29,36 @@
 
 #include <stdint.h>
 
+enum {
+  TAPE_STATUS_OK = 0,
+  TAPE_STATUS_ERROR = 1,
+  TAPE_STATUS_READING = 2,
+};
+
+enum {
+  TAPE_GET_EOF = -1,
+  TAPE_GET_BUSY = -2,
+  TAPE_GET_ERROR = -3,
+};
+
+struct _TapIO;
+
+typedef struct _TapIO {
+  uint8_t buffer[1024 + 512];
+  uint32_t offset;
+  uint32_t size;
+
+  volatile uint32_t tick;
+
+  int (*sync_read)(uint8_t* buffer, uint32_t size);
+  void (*async_read)(uint8_t* buffer, uint32_t size, volatile int* status);
+
+  // Gets signal level, 0 or 1 for the next 9us (48MHz / 432).
+  // Returns a negative on errors.
+  int (*get)(struct _TapIO* io);
+
+  void* ext;
+} TapIO;
+
 void tape_init();
 uint8_t tape_is_remote_on();

@@ -159,7 +159,7 @@ void ui_go(uint8_t next_scene) {
     case UI_OPEN:
       mode = MODE_MENU;
       _.menu.mode = LUI_MENU_DYNAMIC_FULL;
-      _.menu.title = "Open T77";
+      _.menu.title = "Open T77/CMT";
       _.menu.item = list_filename;
       if (file_opendir())
         ui_go(UI_ERROR);

@@ -42,6 +42,8 @@ struct fileinfo {
 };
 // Reuse the TapIO buffer to reduce memory consumption.
 static TapIO io;
+static T77 t77;
+
 static struct fileinfo* files = (struct fileinfo*) io.buffer;
 //static struct fileinfo files[16];
 static DIR dir;
@@ -66,7 +68,7 @@ static int sync_read(uint8_t* buffer, uint32_t size) {
 
 static void async_read(uint8_t* buffer, uint32_t size, volatile int* status) {
   if (async_status != 0) {
-    *status = T77_STATUS_ERROR;
+    *status = TAPE_STATUS_ERROR;
   } else {
     async_buffer = buffer;
     async_size = size;
@@ -233,7 +235,7 @@ uint8_t file_open(const char* name) {
   result = f_open(&t77_file, name, FA_OPEN_EXISTING | FA_READ);
   if (result != FR_OK)
     return 1;
-  int tr = T77_Open(&io);
+  int tr = T77_Open(&io, &t77);
   if (tr)
     return 1;
   state = FILE_STATE_PLAY;  // TODO: check remote state
@@ -244,8 +246,8 @@ uint8_t file_get_signal() {
   static uint8_t signal = 0;
   if (state != FILE_STATE_PLAY)
     return 0;
-  int result = T77_Get(&io);
-  if (result == T77_GET_EOF) {
+  int result = io.get(&io);
+  if (result == TAPE_GET_EOF) {
     state = FILE_STATE_IDLE;
     return 0;
   }
@@ -256,15 +258,15 @@ uint8_t file_get_signal() {
 }
 
 void file_dispatch_async_operations() {
-  if (!async_status || *async_status != T77_STATUS_READING)
+  if (!async_status || *async_status != TAPE_STATUS_READING)
     return;
 
   UINT byte;
   FRESULT result = f_read(&t77_file, async_buffer, async_size, &byte);
   if (result != FR_OK || byte != async_size)
-    *async_status = T77_STATUS_ERROR;
+    *async_status = TAPE_STATUS_ERROR;
   else
-    *async_status = T77_STATUS_OK;
+    *async_status = TAPE_STATUS_OK;
   async_status = 0;
 }
 

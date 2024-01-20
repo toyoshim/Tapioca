@@ -29,36 +29,15 @@
 
 #include <stdint.h>
 
-enum {
-  T77_STATUS_OK = 0,
-  T77_STATUS_ERROR = 1,
-  T77_STATUS_READING = 2,
-};
-
-enum {
-  T77_GET_EOF = -1,
-  T77_GET_BUSY = -2,
-  T77_GET_ERROR = -3,
-};
+#include "tape.h"
 
 typedef struct {
-  uint8_t buffer[1024 + 512];
-  uint32_t offset;
-  uint32_t size;
-  int (*sync_read) (uint8_t* buffer, uint32_t size);
-  void (*async_read) (uint8_t* buffer, uint32_t size, volatile int* status);
-
   uint8_t level;
   uint8_t request;
   uint16_t remain;
-  volatile uint32_t tick;
   volatile int status;
-} TapIO;
+} T77;
 
 // Returns 0 if the file is successfully opened.
 // Returns a negative value on errors.
-int T77_Open(TapIO* io);
-
-// Gets signal level, 0 or 1 for the next 9us (48MHz / 432).
-// Returns a negative on errors.
-int T77_Get(TapIO* io);
+int T77_Open(TapIO* io, T77* t77);
