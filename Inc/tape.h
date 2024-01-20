@@ -27,6 +27,9 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+#ifndef __tape_h__
+#define __tape_h__
+
 #include <stdint.h>
 
 enum {
@@ -44,11 +47,13 @@ enum {
 struct _TapIO;
 
 typedef struct _TapIO {
-  uint8_t buffer[1024 + 512];
+  uint8_t buffer[1024];
   uint32_t offset;
   uint32_t size;
+  uint8_t request;
 
   volatile uint32_t tick;
+  volatile int status;
 
   int (*sync_read)(uint8_t* buffer, uint32_t size);
   void (*async_read)(uint8_t* buffer, uint32_t size, volatile int* status);
@@ -62,3 +67,5 @@ typedef struct _TapIO {
 
 void tape_init();
 uint8_t tape_is_remote_on();
+
+#endif  // __tape_h__

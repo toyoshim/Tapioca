@@ -31,6 +31,7 @@
 
 #include <memory.h>
 
+#include "cmt.h"
 #include "fatfs.h"
 #include "t77.h"
 
@@ -43,6 +44,7 @@ struct fileinfo {
 // Reuse the TapIO buffer to reduce memory consumption.
 static TapIO io;
 static T77 t77;
+static CMT cmt;
 
 static struct fileinfo* files = (struct fileinfo*) io.buffer;
 //static struct fileinfo files[16];
@@ -53,14 +55,14 @@ static uint8_t dir_index = 0;
 static uint8_t dir_level = 0;
 static const char root[] = "0:/";
 
-FIL t77_file;
+FIL tape_file;
 uint8_t* volatile async_buffer = 0;
 volatile uint32_t async_size = 0;
 volatile int* async_status = 0;
 
 static int sync_read(uint8_t* buffer, uint32_t size) {
   UINT byte;
-  FRESULT result = f_read(&t77_file, buffer, size, &byte);
+  FRESULT result = f_read(&tape_file, buffer, size, &byte);
   if (result != FR_OK)
     return -1;
   return byte;
@@ -130,13 +132,16 @@ static uint8_t file_list_until(uint8_t n) {
       files[index].display_name[(len > 14) ? 15 : len + 1] = 0;
       files[index].type = FILE_TYPE_DIR;
     } else {
-      if ((len < 4) || strncasecmp(&fname[len - 4], ".t77", 4))
+      if ((len < 4) || fname[0] == '.'
+          || (strncasecmp(&fname[len - 4], ".t77", 4)
+              && strncasecmp(&fname[len - 4], ".cmt", 4))) {
         continue;
+      }
       memset(files[index].display_name, 0x20, 11);
       strncpy(files[index].display_name, fname, (len < 15) ? len - 4 : 11);
       if (len > 15)
         files[index].display_name[10] = '$';
-      strncpy(&files[index].display_name[11], ".T77", 5);
+      strncpy(&files[index].display_name[11], &fname[len - 4], 5);
       files[index].type = FILE_TYPE_FILE;
     }
     snprintf(files[index].fname, 13, info.fname);
@@ -232,12 +237,17 @@ uint8_t file_open(const char* name) {
   if (result != FR_OK)
     return 1;
   io.size = fin.fsize;
-  result = f_open(&t77_file, name, FA_OPEN_EXISTING | FA_READ);
+  result = f_open(&tape_file, name, FA_OPEN_EXISTING | FA_READ);
   if (result != FR_OK)
     return 1;
   int tr = T77_Open(&io, &t77);
-  if (tr)
-    return 1;
+  if (tr) {
+    f_lseek(&tape_file, 0);
+    tr = CMT_Open(&io, &cmt);
+    if (tr) {
+      return 1;
+    }
+  }
   state = FILE_STATE_PLAY;  // TODO: check remote state
   return 0;
 }
@@ -262,7 +272,7 @@ void file_dispatch_async_operations() {
     return;
 
   UINT byte;
-  FRESULT result = f_read(&t77_file, async_buffer, async_size, &byte);
+  FRESULT result = f_read(&tape_file, async_buffer, async_size, &byte);
   if (result != FR_OK || byte != async_size)
     *async_status = TAPE_STATUS_ERROR;
   else

@@ -1,4 +1,4 @@
-// Copyright (c) 2020, Takashi Toyoshima <toyoshim@gmail.com>. All rights
+// Copyright (c) 2024, Takashi Toyoshima <toyoshim@gmail.com>. All rights
 // reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -27,20 +27,23 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef __t77_h__
-#define __t77_h__
+#ifndef __cmt_h__
+#define __cmt_h__
 
 #include <stdint.h>
 
 #include "tape.h"
 
 typedef struct {
-  uint16_t remain;
-  uint8_t level;
-} T77;
+  uint16_t lead;
+  uint8_t mark;
+  uint8_t count;
+  uint8_t phase;
+  uint8_t bit;
+} CMT;
 
 // Returns 0 if the file is successfully opened.
 // Returns a negative value on errors.
-int T77_Open(TapIO* io, T77* t77);
+int CMT_Open(TapIO* io, CMT* cmt);
 
-#endif  // _t77_h__
+#endif  // __cmt_h__

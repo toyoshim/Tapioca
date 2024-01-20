@@ -27,6 +27,9 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+#ifndef __ui_h__
+#define __ui_h__
+
 #include <stdint.h>
 
 enum {
@@ -49,3 +52,5 @@ void ui_init();
 void ui_go(uint8_t scene);
 void ui_sync();
 void ui_idle();
+
+#endif  // __ui__h__
